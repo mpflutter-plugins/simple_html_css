@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import 'dart:ui' show Color;
+import 'package:flutter/ui/ui.dart' show Color;
 
 class CssNamedColors {
   /// Returns the corresponding [Color] for the passed in CSS color [name]
