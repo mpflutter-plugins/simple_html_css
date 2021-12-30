@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import 'package:flutter/ui/ui.dart' hide TextStyle;
+import 'package:flutter/ui/ui.dart' hide TextStyle, Image;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -145,8 +145,8 @@ class Parser {
   }
 
   /// Converts HTML content to a list of [TextSpan] objects
-  List<TextSpan> parse() {
-    List<TextSpan> spans = <TextSpan>[];
+  List<InlineSpan> parse() {
+    List<InlineSpan> spans = <InlineSpan>[];
     for (final XmlEvent event in _events) {
       if (event is XmlStartElementEvent) {
         if (!event.isSelfClosing) {
@@ -296,6 +296,44 @@ class Parser {
           if (event.name == 'br') {
             spans.add(const TextSpan(text: '\n'));
           }
+          if (event.name == 'img') {
+            String? src;
+            double? width;
+            double? height;
+            for (final XmlEventAttribute attribute in event.attributes) {
+              if (attribute.name == 'src') {
+                src = attribute.value;
+              } else if (attribute.name == 'width') {
+                width = double.tryParse(attribute.value);
+              } else if (attribute.name == 'height') {
+                height = double.tryParse(attribute.value);
+              } else if (attribute.name == 'style') {
+                attribute.value.split(';').forEach((element) {
+                  final vs = element.split(':');
+                  if (vs.length == 2) {
+                    final k = vs[0].trim();
+                    final v = vs[1].trim().replaceAll(RegExp('[a-zA-Z]+'), '');
+                    if (k == 'width') {
+                      width = double.tryParse(v);
+                    } else if (k == 'height') {
+                      height = double.tryParse(v);
+                    }
+                  }
+                });
+              }
+            }
+            if (src != null && width != null && height != null) {
+              spans.add(
+                WidgetSpan(
+                  child: Container(
+                    width: width,
+                    height: height,
+                    child: Image.network(src),
+                  ),
+                ),
+              );
+            }
+          }
         }
       }
 
@@ -338,7 +376,7 @@ class Parser {
 
     // removing all extra new line textSpans to avoid space at the bottom
     if (spans.isNotEmpty) {
-      final List<TextSpan> reversed = spans.reversed.toList();
+      final List<InlineSpan> reversed = spans.reversed.toList();
 
       while (reversed.isNotEmpty &&
           (reversed.first.text == '\n\n' || reversed.first.text == '\n')) {
