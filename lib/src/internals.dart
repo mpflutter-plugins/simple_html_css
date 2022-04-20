@@ -19,6 +19,7 @@ import 'package:flutter/ui/ui.dart' hide TextStyle, Image;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_html_css/src/html_stylist.dart';
 import 'package:xml/xml_events.dart';
 
 import './utils.dart';
@@ -322,7 +323,31 @@ class Parser {
                 });
               }
             }
-            if (src != null && width != null && height != null) {
+            if (src == null) {
+              continue;
+            }
+            final processer = (() {
+              if (context is StatefulElement &&
+                  (context as StatefulElement).state
+                      is HTMLImageSizeProcesserState) {
+                return (context as StatefulElement).state
+                    as HTMLImageSizeProcesserState;
+              }
+              return context
+                  .findAncestorStateOfType<HTMLImageSizeProcesserState>();
+            })();
+            if (processer != null) {
+              final size = processer.getImageSize(src);
+              width = size?.width;
+              height = size?.height;
+            }
+            if (width != null && height != null) {
+              if (processer != null &&
+                  processer.widget.maxWidth != null &&
+                  width! > processer.widget.maxWidth!) {
+                height = processer.widget.maxWidth! / width! * height!;
+                width = processer.widget.maxWidth;
+              }
               spans.add(
                 WidgetSpan(
                   child: Container(
@@ -332,6 +357,8 @@ class Parser {
                   ),
                 ),
               );
+            } else if (processer != null) {
+              processer.processImage(src);
             }
           }
         }

@@ -126,9 +126,7 @@ class StyleGenUtils {
 
   /// Creates a [TextStyle] to handle CSS background
   static TextStyle addBgColor(TextStyle textStyle, String value) {
-    final Paint paint = Paint();
-    paint.color = _convertColor(value);
-    return textStyle.copyWith(background: paint);
+    return textStyle.copyWith(backgroundColor: _convertColor(value));
   }
 
   static TextStyle addFontStyle(TextStyle textStyle, String value) {

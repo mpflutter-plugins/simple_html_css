@@ -17,8 +17,43 @@
 
 import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:mpcore/mpcore.dart';
 
 import './internals.dart';
+
+class HTMLImageSizeProcesser extends StatefulWidget {
+  HTMLImageSizeProcesser({required this.builder, this.maxWidth});
+
+  final WidgetBuilder builder;
+  final double? maxWidth;
+
+  @override
+  State<HTMLImageSizeProcesser> createState() => HTMLImageSizeProcesserState();
+}
+
+class HTMLImageSizeProcesserState extends State<HTMLImageSizeProcesser> {
+  final imageSizeCache = <String, Size>{};
+
+  void processImage(String url) async {
+    final drawable = await MPDrawable.fromNetworkImage(url);
+    setState(() {
+      imageSizeCache[url] = Size(
+        drawable.width.toDouble(),
+        drawable.height.toDouble(),
+      );
+    });
+    drawable.dispose();
+  }
+
+  Size? getImageSize(String url) {
+    return imageSizeCache[url];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(context);
+  }
+}
 
 /// This class is the only class you should be using from the
 /// simple_html_css package. It contains all the methods you need to
